@@ -1,26 +1,42 @@
+import { useNavigation } from '@react-navigation/native';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useRef, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-  const [hasPermission, setHasPermission] = useState(null);
-  const [capturedImage, setCapturedImage] = useState(null);
-  const cameraRef = useRef(null);
+import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { processTextWithAI } from '../../utils/ai';
 
 export default function HomeScreen() {
+  const [hasPermission, setHasPermission] = useState(null);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [extractedText, setExtractedText] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const cameraRef = useRef<Camera>(null);
+  const [error, setError] = useState<string | null>(null);
+  const navigation = useNavigation();
+
   useEffect(() => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === 'granted');
     })();
   }, []);
-
-  const takePicture = async () => {
-    if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync();
-      setCapturedImage(photo.uri);
+  useEffect(() => {
+    if (extractedText) {
+      processTextWithAI(extractedText).then(aiResult => {
+        setIsLoading(true);
+        try {
+          navigation.navigate('aiResult', {
+            summary: aiResult.summary,
+            keywords: aiResult.keywords,
+            definitions: aiResult.definitions,
+          });
+        } catch (error) {
+          setError('Error processing AI response.');
+        }
+        setIsLoading(false);
+      });
     }
-  };
+  }, [extractedText]);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -30,18 +46,40 @@ export default function HomeScreen() {
       quality: 1,
     });
 
-    if (!result.canceled) {
-      setCapturedImage(result.assets[0].uri);
+    setIsLoading(true);
+    try {
+      if (!result.canceled) {
+        setCapturedImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      setError('Error picking image.');
+    }
+  };
+
+  const takePicture = async () => {
+    if (cameraRef.current) {
+      const photo = await cameraRef.current.takePictureAsync();
+      setCapturedImage(photo.uri);
     }
   };
 
   const performOCR = async (imageUri: string) => {
     // Basic OCR implementation (replace with actual OCR library)
-    // For now, let's just display the image URI as the "extracted text"
-    // You would integrate a library like Google ML Kit or Tesseract.js here
-    setExtractedText(`Image URI: ${imageUri}`);
+    setIsLoading(true);
+    setError(null); // Clear previous errors
+    try {
+      // Simulate OCR processing
+      setExtractedText(`This is some sample text extracted from ${imageUri}. This text will be sent to the AI.`);
+      setIsLoading(false);
+    } catch (error) {
+      setError('Error performing OCR.');
+      setIsLoading(false);
+    }
   };
 
+  if (error) {
+    return <Text style={{ color: 'red', textAlign: 'center' }}>Error: {error}</Text>;
+  }
 
   if (hasPermission === null) {
     return <View />;
@@ -50,17 +88,23 @@ export default function HomeScreen() {
     return <Text>No access to camera</Text>;
   }
 
-  return (  
+  return (
     <View style={styles.container}>
       {capturedImage ? (
-        <Image source={{ uri: capturedImage }} style={styles.preview} />
-      ) : (
-        <Camera style={styles.camera} ref={cameraRef}>
+        <>
+          <Image source={{ uri: capturedImage }} style={styles.preview} />
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={takePicture}>
-              <Text style={styles.text}>Take Picture</Text>
+            <TouchableOpacity style={styles.button} onPress={() => performOCR(capturedImage)}>
+              <Text style={styles.text}>Perform OCR</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button} onPress={() => setCapturedImage(null)}>
+              <Text style={styles.text}>Retake</Text>
             </TouchableOpacity>
           </View>
+        </>
+      ) : (
+        <Camera style={styles.camera} ref={cameraRef}>
+            <TouchableOpacity style={styles.button} onPress={takePicture}>{}</TouchableOpacity>          
         </Camera>
       )}
       <View style={styles.buttonContainer}>
@@ -68,14 +112,15 @@ export default function HomeScreen() {
           <Text style={styles.text}>Pick Image</Text>
         </TouchableOpacity>
       </View>
+      {isLoading && <ActivityIndicator size="large" color="#0000ff" />}
       {extractedText && <Text style={styles.extractedText}>{extractedText}</Text>}
     </View>
   );
 }
 const styles = StyleSheet.create({
   container: {
- flex: 1,
- justifyContent: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   camera: {
     flex: 1,
@@ -84,7 +129,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     flexDirection: 'row',
-    margin: 20,
+    marginVertical: 20,
   },
   button: {
     flex: 0.1,
