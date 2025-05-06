@@ -1,6 +1,6 @@
+import { Colors, Spacing, Typography } from '@/constants/Styles';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View, Button, Alert, Pressable } from 'react-native';
-import { Colors, Typography, Spacing } from '@/constants/Styles';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface AIResult {
   summary: string;
@@ -76,17 +76,13 @@ const styles = StyleSheet.create({
  color: Colors.text,
   },
   keywordsContainer: {
- flexDirection: 'row',
- flexWrap: 'wrap',
- marginBottom: Spacing.medium,
-  },
-  keywordsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginBottom: 10,
   },
   keyword: {
- keywordChip: {
+  },
+  keywordChip: {
  backgroundColor: Colors.secondary,
  paddingVertical: Spacing.extraSmall,
  paddingHorizontal: Spacing.small,
@@ -101,13 +97,6 @@ const styles = StyleSheet.create({
   definitionTerm: {
     fontWeight: 'bold',
  color: Colors.text,
-  },
-  askAIButton: {
- backgroundColor: Colors.primary,
- padding: Spacing.medium,
- borderRadius: Spacing.small,
- alignItems: 'center',
- marginTop: Spacing.large,
   },
   askAIButton: {
     marginTop: 20,
