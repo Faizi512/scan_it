@@ -1,8 +1,8 @@
 import { Camera } from 'expo-camera';
-import { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { useEffect, useRef, useState } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function HomeScreen() {
   const [hasPermission, setHasPermission] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
   const cameraRef = useRef(null);
@@ -21,6 +21,27 @@ export default function HomeScreen() {
       setCapturedImage(photo.uri);
     }
   };
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setCapturedImage(result.assets[0].uri);
+    }
+  };
+
+  const performOCR = async (imageUri: string) => {
+    // Basic OCR implementation (replace with actual OCR library)
+    // For now, let's just display the image URI as the "extracted text"
+    // You would integrate a library like Google ML Kit or Tesseract.js here
+    setExtractedText(`Image URI: ${imageUri}`);
+  };
+
 
   if (hasPermission === null) {
     return <View />;
@@ -42,6 +63,12 @@ export default function HomeScreen() {
           </View>
         </Camera>
       )}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={pickImage}>
+          <Text style={styles.text}>Pick Image</Text>
+        </TouchableOpacity>
+      </View>
+      {extractedText && <Text style={styles.extractedText}>{extractedText}</Text>}
     </View>
   );
 }
@@ -72,4 +99,8 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: 'contain',
   },
+  extractedText: {
+    marginTop: 20,
+    padding: 10,
+  }
 });
