@@ -1,4 +1,3 @@
-import { useNavigation } from '@react-navigation/native';
 import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useRef, useState } from 'react';
@@ -11,8 +10,7 @@ export default function HomeScreen() {
   const [extractedText, setExtractedText] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const cameraRef = useRef<Camera>(null);
-  const [error, setError] = useState<string | null>(null);
-  const navigation = useNavigation();
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     (async () => {
@@ -23,17 +21,13 @@ export default function HomeScreen() {
   useEffect(() => {
     if (extractedText) {
       processTextWithAI(extractedText).then(aiResult => {
-        setIsLoading(true);
         try {
-          navigation.navigate('aiResult', {
-            summary: aiResult.summary,
-            keywords: aiResult.keywords,
-            definitions: aiResult.definitions,
+          router.navigate('test', {
+            aiResult,
           });
         } catch (error) {
           setError('Error processing AI response.');
         }
-        setIsLoading(false);
       });
     }
   }, [extractedText]);
