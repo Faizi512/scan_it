@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+// import { render, fireEvent } from '@testing-library/react-native';
 import HomeScreen from './index'; // Import the HomeScreen component
 
 describe('HomeScreen', () => {
