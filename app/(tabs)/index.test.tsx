@@ -26,6 +26,6 @@ describe('HomeScreen', () => {
 
     fireEvent.press(scanButton);
 
-    expect(on onPressMock).toHaveBeenCalled();
+    expect(onPressMock).toHaveBeenCalled();
   });
 });
